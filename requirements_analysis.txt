@@ -1,0 +1,9 @@
+# analysis/ 的環境（與 psi-weighted-nnunet 的 expertree 相同）
+numpy==1.26.4
+pandas==2.3.3
+scipy==1.15.2
+scikit-learn==1.7.2
+scikit-image==0.25.2
+opencv-python-headless
+pillow
+# 推論與訓練使用 FunduSegmenter 官方環境（本研究：torch 2.4.1+cu121、monai 1.5.1、albumentations 2.0.8）

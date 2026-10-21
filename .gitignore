@@ -1,0 +1,15 @@
+# 權重、影像、預測圖不納入版本控制
+*.pth
+*.pt
+*.npz
+*.zip
+*.png
+*.jpg
+*.bmp
+map/
+saved_weights/
+tensorboard/
+psi_expert/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
