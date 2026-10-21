@@ -1,0 +1,10 @@
+Number of frozen parameters of RETFound (M): 310.646
+Number of pre_adapter parameters (M): 0.039
+Number of decoder parameters (M): 28.344
+Number of post_adapter parameters (M): 0.866
+Number of learnable parameters (M): 35.568
+Number of train images: 400
+Number of validation images: 400
+[Ψ加權] 清單 （無）　case 數 0　倍率 1.0　訓練集中被加權 0 / 400 張
+******** Start training for 600 epochs ********
+  0%|          | 0/600 [00:00<?, ?it/s][Ψ加權] 自我檢查：原 loss 1.89341187　w=1 逐張 loss 1.89341199　差 1.19e-07

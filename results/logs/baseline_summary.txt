@@ -1,0 +1,8 @@
+Number of frozen parameters of RETFound (M): 310.646
+Number of pre_adapter parameters (M): 0.039
+Number of decoder parameters (M): 28.344
+Number of post_adapter parameters (M): 0.866
+Number of learnable parameters (M): 35.568
+Number of train images: 400
+Number of validation images: 400
+******** Start training for 10000 epochs ********
