@@ -1,0 +1,4 @@
+﻿dataset,expert,control,n_weighted,delta_weighted,加權組_提升,加權組_下降,n_unweighted,delta_unweighted,未加權組_提升,未加權組_下降,weighted_minus_unweighted,mannwhitney_p
+REFUGE,psi1w3,refuge_control,120,-0.0047,47,73,280,-0.0053,64,216,0.0006,0.1363
+REFUGE,psi5w3,refuge_control,120,-0.0060,29,91,280,-0.0106,36,244,0.0047,0.0000
+REFUGE,psi8w3,refuge_control,120,-0.0053,34,86,280,-0.0048,80,200,-0.0005,0.9740

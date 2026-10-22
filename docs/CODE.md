@@ -46,7 +46,8 @@
 | `refuge_lists.py check` | 與原 `caselevel_refuge.csv`、`per_image_dice_designed.csv` 比對 | |
 | `refuge_lists.py proxy` | 以原表為底、只替換 Ψ8 後重新檢定 | 呼叫 `recompute_caselevel.report` |
 | `refuge_lists.py make` | 產生加權清單 | `select()` 逐字複製自 `make_weight_lists.py` |
-| `refuge_compare.py` | 被加權病例的加權前後、加權組 vs 未加權組 | 輸出格式同 `weighted_cases_same_loss.py`；`--before baseline / control` |
+| `weighted_cases_same_loss.py` | **加權病例分析**：被加權病例的加權前（對照組）/ 後（專家），含 OD / OC → `results/weighted_cases/` | 與 psi-weighted-nnunet `analysis/weighted_cases_same_loss.py` 相同的檔名、欄位與彙總方式 |
+| `refuge_compare.py` | 加權前後比較（含未加權病例；補充） | `--before baseline / control`；也用於測試集 |
 | `refuge_placebo.py` | 交叉清單安慰劑、控制 baseline Dice（分層置換）、回歸平均斜率 | |
 
 ## tools/
@@ -63,6 +64,7 @@
 | `proxy/caselevel_refuge_validation.csv` | validation 病例層級 10 個 Ψ（用於篩選） |
 | `proxy/caselevel_refuge_testing_original.csv` | 原 testing 表（Ψ2 / Ψ8 為 224） |
 | `proxy/caselevel_refuge_testing_psi8at256.csv` | 同上，Ψ8 換成 256 |
-| `compare_training*/` | 加權前後比較、安慰劑矩陣（`_vs_control` 為對對照組） |
+| `weighted_cases/` | 加權病例分析（主要；格式同 psi-weighted-nnunet） |
+| `compare_training*/`、`compare_testing*/` | 補充比較、安慰劑矩陣（`_vs_control` 為對對照組） |
 | `curves/` | 每個 epoch 的 training loss、validation OD / OC / mean Dice、加權樣本數 |
 | `logs/` | 各訓練 log 的關鍵行（張數、清單、自我檢查、最佳 epoch、訓練時間） |

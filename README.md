@@ -91,11 +91,18 @@ baseline 的每一項設定都由檔案反推並驗證，見 [docs/METHODS.md](d
 | Ψ5 ×3 | 128 | **0.9028** | **+0.0056** | 243 / 157 | 7.7e-09 |
 | Ψ8 ×3 | 202 | **0.8995** | **+0.0023** | 236 / 164 | 2.0e-03 |
 
-**訓練集（被加權病例，加權組 − 未加權組，對對照組）**：Ψ1 +0.0006、Ψ5 +0.0047、Ψ8 −0.0005；
-扣除清單病例本身的特性（同一清單在其他模型中未被加權時的差距）後約 +0.0015、+0.0020、−0.0002，皆不顯著。
+**訓練集（被加權病例，各 120 例，專家 − 對照組）**
+
+| 專家 | 加權前（對照組） | 加權後（專家） | Δ | 升 / 降 |
+|---|---|---|---|---|
+| Ψ1 | 0.9748 | 0.9701 | −0.0047 | 47 / 73 |
+| Ψ5 | 0.9744 | 0.9684 | −0.0060 | 29 / 91 |
+| Ψ8 | 0.9761 | 0.9708 | −0.0053 | 34 / 86 |
+
+逐例資料：`results/weighted_cases/`（格式同 psi-weighted-nnunet）。
 
 1. **三個專家在測試集上都優於對照組與 baseline**，提升主要在視杯（OC +0.006 至 +0.009）；對照組與 baseline 只差 0.0006。
-2. **訓練集上被加權的病例沒有明顯改善**，與 ACDC（+0.009 至 +0.011）、BTCV（約 +0.005）不同。測試集的提升因此不能解釋為「模型學好了被加權的病例」，機制尚未確定。
+2. **訓練集上被加權的病例沒有改善**（多數下降），與 ACDC、BTCV（被加權病例幾乎全部提升）不同。測試集的提升因此不能解釋為「模型學好了被加權的病例」，機制尚未確定。
 3. 同設定重跑的差異很大：對照組與 baseline 的最佳 epoch 相差 150（197 vs 347）。每個模型只訓練一次，Wilcoxon 以影像為單位，未包含不同次訓練之間的變異。
 4. proxy 以 validation 篩選，測試集未參與任何選擇。
 
@@ -116,7 +123,8 @@ fundusegmenter_extension/   需放進 FunduSegmenter 資料夾執行的程式（
 analysis/                   只讀 CSV 的分析（不需 GPU）
   refuge_select_proxy.py    proxy 篩選（直接 import psi-weighted-nnunet 的 Ψ 函式與檢定）
   refuge_lists.py           與原結果比對（check / proxy）、產生加權清單（make）
-  refuge_compare.py         被加權病例的加權前後比較
+  weighted_cases_same_loss.py  加權病例分析（專家 vs 對照組；格式同 psi-weighted-nnunet）→ results/weighted_cases/
+  refuge_compare.py         加權前後比較（含未加權病例；補充）
   refuge_placebo.py         安慰劑檢查（交叉清單、控制 baseline Dice、回歸平均）
 tools/collect_results.sh    把本機結果複製進 results/、weight_lists/
 weight_lists/               三份加權清單

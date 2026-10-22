@@ -1,0 +1,4 @@
+﻿dataset,expert,list_file,control,prediction_source,n_weighted,before_control,after_expert,delta,提升,下降,wilcoxon_p
+REFUGE,psi1w3,wcases_refuge_psi1_convex.csv,refuge_control,training 400 張預測（best epoch）,120,0.9748,0.9701,-0.0047,47,73,0.0000
+REFUGE,psi5w3,wcases_refuge_psi5_exclusion.csv,refuge_control,training 400 張預測（best epoch）,120,0.9744,0.9684,-0.0060,29,91,0.0000
+REFUGE,psi8w3,wcases_refuge_psi8_rotation.csv,refuge_control,training 400 張預測（best epoch）,120,0.9761,0.9708,-0.0053,34,86,0.0000
