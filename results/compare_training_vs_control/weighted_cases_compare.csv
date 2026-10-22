@@ -1,0 +1,4 @@
+﻿dataset,expert,n_weighted,delta_weighted,加權組_提升,加權組_下降,n_unweighted,delta_unweighted,未加權組_提升,未加權組_下降,weighted_minus_unweighted,mannwhitney_p,overall_before,overall_after,overall_delta,overall_wilcoxon_p
+REFUGE,psi1_convex,120,-0.0047,47,73,280,-0.0053,64,216,0.0006,0.1363,0.9777,0.9726,-0.0051,0.0000
+REFUGE,psi5_exclusion,120,-0.0060,29,91,280,-0.0106,36,244,0.0047,0.0000,0.9777,0.9685,-0.0092,0.0000
+REFUGE,psi8_rotation,120,-0.0053,34,86,280,-0.0048,80,200,-0.0005,0.9740,0.9777,0.9728,-0.0049,0.0000

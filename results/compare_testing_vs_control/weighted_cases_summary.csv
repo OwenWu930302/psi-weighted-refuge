@@ -1,0 +1,4 @@
+﻿dataset,expert,list_file,control,prediction_source,n_weighted,before_control,after_expert,delta,OD_delta,OC_delta,提升,下降,wilcoxon_p
+REFUGE,psi1_convex,wcases_refuge_psi1_convex.csv,control,testing 400 張預測,0,,,,,,0,0,
+REFUGE,psi5_exclusion,wcases_refuge_psi5_exclusion.csv,control,testing 400 張預測,0,,,,,,0,0,
+REFUGE,psi8_rotation,wcases_refuge_psi8_rotation.csv,control,testing 400 張預測,0,,,,,,0,0,

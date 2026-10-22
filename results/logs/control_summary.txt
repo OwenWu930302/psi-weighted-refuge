@@ -8,3 +8,5 @@ Number of validation images: 400
 [Ψ加權] 清單 （無）　case 數 0　倍率 1.0　訓練集中被加權 0 / 400 張
 ******** Start training for 600 epochs ********
   0%|          | 0/600 [00:00<?, ?it/s][Ψ加權] 自我檢查：原 loss 1.89341187　w=1 逐張 loss 1.89341199　差 1.19e-07
+Training time is 5:43:24
+The best weights are trained in epoch 347
