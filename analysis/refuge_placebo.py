@@ -125,8 +125,8 @@ def star(p):
 
 print('【檢查一＋二：差距矩陣】列 = 模型，欄 = 清單；對角線 = 真正被加權，其餘 = 安慰劑（在該模型中沒被加權）')
 print('  原始差距 = 清單病例平均 Δ − 其他病例平均 Δ')
-print('  控制後差距 = 只在 baseline Dice 相近的病例之間比較（排除回歸平均）\n')
-for col, pcol, title in [('gap_raw', 'p_raw', '原始差距'), ('gap_adj', 'p_adj', '控制 baseline Dice 後的差距')]:
+print(f'  控制後差距 = 只在加權前（{a.before}）Dice 相近的病例之間比較（排除回歸平均）\n')
+for col, pcol, title in [('gap_raw', 'p_raw', '原始差距'), ('gap_adj', 'p_adj', f'控制加權前（{a.before}）Dice 後的差距')]:
     print(f'  {title}')
     print(f'  {"模型 ＼ 清單":<14}' + ''.join(f'{SHORT[L] + " 清單":>20}' for L in EXPERTS))
     for M in EXPERTS:
@@ -139,12 +139,12 @@ for col, pcol, title in [('gap_raw', 'p_raw', '原始差距'), ('gap_adj', 'p_ad
     print()
 print('  ◆ = 真正被加權　* p<0.05　** p<0.01　*** p<0.001（控制後為分層置換檢定）')
 
-print('\n【線性迴歸交叉確認】Δ ~ 是否在清單 + baseline Dice')
+print(f'\n【線性迴歸交叉確認】Δ ~ 是否在清單 + 加權前（{a.before}）Dice')
 print(f'  {"模型":<8}{"清單":<8}{"類型":<8}{"係數":>10}{"p":>11}')
 for _, r in T.iterrows():
     print(f'  {SHORT[r.model]:<8}{SHORT[r.list]:<8}{r.kind:<8}{r.gap_ols:>+10.4f}{r.p_ols:>11.2e}')
 
-print('\n【檢查三：回歸平均是否存在】未加權病例中 Δ 對 baseline Dice 的斜率（負 = 有回歸平均）')
+print(f'\n【檢查三：回歸平均是否存在】未加權病例中 Δ 對加權前（{a.before}）Dice 的斜率（負 = 有回歸平均）')
 for M in EXPERTS:
     u = ~inL[M]
     s = stats.linregress(xb[u], delta[M][u])

@@ -54,10 +54,9 @@ $$L = \frac{\sum_i w_i \cdot L_{\text{Dice+CE}}(x_i)}{\sum_i w_i}, \qquad w_i \i
 | proxy 篩選（validation） | 完成：Ψ1、Ψ5、Ψ8 |
 | 加權清單 | 完成 |
 | 三個專家模型 | 完成 |
-| 訓練集分析（對 baseline）＋ 安慰劑檢查 | 完成（初步） |
-| 對照組 | **訓練中** |
-| 訓練集分析（對對照組） | 待對照組完成 |
-| 測試集評估 | 所有實驗完成後 |
+| 對照組 | 完成 |
+| 訓練集分析（對對照組、對 baseline）＋ 安慰劑檢查 | 完成 |
+| 測試集評估 | 完成 |
 
 ---
 
@@ -76,16 +75,29 @@ $$L = \frac{\sum_i w_i \cdot L_{\text{Dice+CE}}(x_i)}{\sum_i w_i}, \qquad w_i \i
 | 加權 | — | 清單病例 ×3（對照組：無） |
 
 baseline 的每一項設定都由檔案反推並驗證，見 [docs/METHODS.md](docs/METHODS.md) 第 2 節。
+與原論文的差異只有 batch size（原論文 32；本研究 16，RTX 4080 記憶體限制）。baseline 在 REFUGE testing 的 OD / OC 為 93.94 / 85.61，原論文為 93.61 / 85.78，重現了文獻數值。
 
 ---
 
-## 目前結果（訓練集，初步）
+## 主要結果
 
-**未控制回歸平均時**，被加權病例比未加權病例「掉得少」，Ψ5 顯著（+0.0049，p = 4.5e-05）。
-**以 baseline Dice 分層控制回歸平均後**，三個專家都沒有顯著的加權效果（Ψ1 −0.0015、Ψ5 +0.0023、Ψ8 −0.0016）。
+**測試集（testing 400 張）**
 
-原因是「加權前」用的是產生清單的同一個 baseline：清單病例的 baseline Dice 本來就偏低，換一個模型重新預測就會回升（未加權病例中 Δ 對 baseline Dice 的斜率 −0.66 至 −0.89）。
-對照組（訓練中）完成後，以「專家 − 對照組」重新比較，回歸平均會兩邊抵消。
+| 模型 | 最佳 epoch | 病例 Dice | Δ vs 對照組 | 升 / 降 | Wilcoxon p |
+|---|---|---|---|---|---|
+| baseline | 197 | 0.8978 | +0.0006 | — | — |
+| 對照組（不加權重跑） | 347 | 0.8972 | — | — | — |
+| Ψ1 ×3 | 202 | **0.9049** | **+0.0077** | 258 / 142 | 7.5e-12 |
+| Ψ5 ×3 | 128 | **0.9028** | **+0.0056** | 243 / 157 | 7.7e-09 |
+| Ψ8 ×3 | 202 | **0.8995** | **+0.0023** | 236 / 164 | 2.0e-03 |
+
+**訓練集（被加權病例，加權組 − 未加權組，對對照組）**：Ψ1 +0.0006、Ψ5 +0.0047、Ψ8 −0.0005；
+扣除清單病例本身的特性（同一清單在其他模型中未被加權時的差距）後約 +0.0015、+0.0020、−0.0002，皆不顯著。
+
+1. **三個專家在測試集上都優於對照組與 baseline**，提升主要在視杯（OC +0.006 至 +0.009）；對照組與 baseline 只差 0.0006。
+2. **訓練集上被加權的病例沒有明顯改善**，與 ACDC（+0.009 至 +0.011）、BTCV（約 +0.005）不同。測試集的提升因此不能解釋為「模型學好了被加權的病例」，機制尚未確定。
+3. 同設定重跑的差異很大：對照組與 baseline 的最佳 epoch 相差 150（197 vs 347）。每個模型只訓練一次，Wilcoxon 以影像為單位，未包含不同次訓練之間的變異。
+4. proxy 以 validation 篩選，測試集未參與任何選擇。
 
 完整數據見 [docs/RESULTS.md](docs/RESULTS.md)。
 
@@ -132,7 +144,7 @@ FunduSegmenter（[JusticeZzy/FunduSegmenter](https://github.com/JusticeZzy/Fundu
 
 FunduSegmenter was created by Zhenyi Zhao of the University of Dundee, UK.
 
-- Zhao, Z., Mookiah, M. R. K., & Trucco, E. (2026). FunduSegmenter: Leveraging the RETFound Foundation Model for Joint Optic Disc and Optic Cup Segmentation in Retinal Fundus Images. *Translational Vision Science & Technology*, 15(5), 14.
+- Zhao, Z., Mookiah, M. R. K., & Trucco, E. (2026). FunduSegmenter: Leveraging the RETFound Foundation Model for Joint Optic Disc and Optic Cup Segmentation in Retinal Fundus Images. *Translational Vision Science & Technology*, 15(5), 14. [arXiv:2508.11354](https://arxiv.org/abs/2508.11354)；程式與權重：[JusticeZzy/FunduSegmenter](https://github.com/JusticeZzy/FunduSegmenter)
 - Zhou, Y. et al. A foundation model for generalizable disease detection from retinal images (RETFound). *Nature* 622, 156–163 (2023).
 - Orlando, J. I. et al. REFUGE Challenge. *Medical Image Analysis* 59, 101570 (2020).
 

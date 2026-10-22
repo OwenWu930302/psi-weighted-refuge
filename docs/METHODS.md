@@ -31,6 +31,8 @@ baseline 為先前以官方 FunduSegmenter 訓練的模型（`best_designed.pth`
 | 其他 | AdamW、lr 0.001、weight decay 0.001、seed 112316、Dice + CE | 官方 `train.py` 預設值 |
 | 測試推論 | `test.py`，image_size 256 | 重算 testing 的 Dice、Ψ1、Ψ5 與原結果差 0；OD mean Dice 0.9394 與原 log 相同 |
 
+與原論文（Zhao et al., arXiv:2508.11354）設定的差異：原論文 batch 32、最多 20,000 epoch、RTX 5090（32 GB）；本研究 batch 16（RTX 4080 16 GB 在 batch 32 時 GPU 記憶體不足）。其餘（256×256 輸入、AdamW lr 0.001 / weight decay 0.001、Dice + CE、seed 112316、以 validation 最高 DSC 選權重、800×800 ROI 預測後貼回原圖）相同。baseline 在 testing 的 OD / OC 為 93.94 / 85.61，原論文為 93.61 / 85.78（見 RESULTS 第 1 節）。
+
 注意：原本計算 Ψ2 / Ψ8 的腳本（`run_psi2_psi8_refuge.py` v3）寫死 `IMAGE_SIZE = 224`，與模型的 256 不一致（見第 4.3 節）。
 
 ---
@@ -165,6 +167,7 @@ REFUGE 的推論依 `centres.txt` 的絕對座標裁出 ROI，旋轉或遮擋原
 - 被加權病例：加權前 / 後 Dice、Δ、升 / 降例數、Wilcoxon
 - 加權組 Δ − 未加權組 Δ（以未加權組為參考線，扣掉兩模型的整體偏移）、Mann-Whitney
 - 加權前 = 對照組（主要）；對 baseline 的結果作為補充
+- 另以「同一清單在其他模型中未被加權時的差距」作為該清單病例本身的傾向，對角線減去它估計加權本身的效果
 
 **安慰劑檢查**（`refuge_placebo.py`）：
 1. 交叉清單：在模型 M 中，以別的清單中「在 M 裡沒被加權」的病例計算差距；若與真正被加權的差距相近，效果不是加權造成的
@@ -183,3 +186,5 @@ REFUGE 的推論依 `centres.txt` 的絕對座標裁出 ROI，旋轉或遮擋原
 4. **清單重疊**：Ψ1 與 Ψ5 的清單重疊 64%，兩個專家不完全獨立。
 5. **相機差異**：training 為 Zeiss，validation / testing 為 Canon。
 6. **Ψ 的意義**：REFUGE 上 Ψ5 反映視杯相對大小（解剖類型），不一定代表模型錯誤；Ψ1 的數值範圍極窄（約 1.008–1.010）。
+7. **重跑變異**：對照組與 baseline 設定相同，最佳 epoch 為 347 與 197，訓練集 Dice 0.9777 與 0.9753，測試集 0.8972 與 0.8978。每個模型只訓練一次；Wilcoxon 以影像為單位，不包含不同次訓練之間的變異。
+8. **未檢驗的對照**：沒有以隨機清單（任意 120 例 ×3）訓練，無法區分測試集的提升來自「Ψ 選到的病例」還是任何形式的加權。
