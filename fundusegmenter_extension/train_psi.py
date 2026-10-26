@@ -99,6 +99,8 @@ def get_args_parser():
                         help='[Ψ加權] 要加權的病例清單 csv；留空 = 不加權（與 train.py 相同）')
     parser.add_argument('--psi_factor', default=3.0, type=float,
                         help='[Ψ加權] 清單病例的 loss 倍率')
+    parser.add_argument('--psi_norm', default='wsum', choices=['wsum', 'mean'],                    # 新增
+                        help='[Ψ加權] batch 內的平均方式：wsum = Σ w L / Σ w；mean = Σ w L / B（w 全為 1 時兩者皆等於官方 loss）')
     parser.add_argument('--grad_ckpt', default=0, type=int,
                         help='[記憶體] 1 = RETFound encoder 逐 block gradient checkpointing（結果不變，較慢、省 GPU 記憶體）')
     return parser
@@ -415,7 +417,7 @@ def main(args):
             raise ValueError(f'[Ψ加權] 清單中 {len(missing)} 例不在訓練集：{missing[:5]}')
     train_dataset = PsiWeightedDataset(train_dataset, train_names, psi_cases, args.psi_factor)
     print(f'[Ψ加權] 清單 {args.psi_cases or "（無）"}　case 數 {len(psi_cases)}　'
-          f'倍率 {args.psi_factor if psi_cases else 1.0}　'
+          f'倍率 {args.psi_factor if psi_cases else 1.0}　平均方式 {args.psi_norm}　'
           f'訓練集中被加權 {int((train_dataset.w > 1).sum())} / {len(train_dataset)} 張')
         
     # dataloader
@@ -505,7 +507,10 @@ def main(args):
             # [Ψ加權] L = Σ w_i (Dice_i + CE_i) / Σ w_i ；w 全為 1 時等於原本的 loss
             l_dice = dice_loss_ps(y_pred, y_true.float()).flatten(1).mean(1)     # (B,)
             l_ce = ce_loss_ps(y_pred, y_true.float()).flatten(1).mean(1)         # (B,)
-            loss = (w * (l_dice + l_ce)).sum() / w.sum()
+            if args.psi_norm == 'mean':                                          # 新增
+                loss = (w * (l_dice + l_ce)).mean()                              # 新增：Σ w L / B
+            else:
+                loss = (w * (l_dice + l_ce)).sum() / w.sum()                     # Σ w L / Σ w
             if not psi_checked:
                 # 第一個 batch 自我檢查：權重全設為 1 時，必須與原本 train.py 的 loss 相同
                 with torch.no_grad():

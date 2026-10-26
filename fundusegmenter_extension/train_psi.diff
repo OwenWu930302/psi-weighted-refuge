@@ -4,15 +4,17 @@
 > 
 37a41
 > from PIL import Image                                       # [記憶體]
-92a97,103
+92a97,105
 >     # [Ψ加權] 加權清單（csv，需有 case 欄，值為不含副檔名的影像檔名）與倍率
 >     parser.add_argument('--psi_cases', default='', type=str,
 >                         help='[Ψ加權] 要加權的病例清單 csv；留空 = 不加權（與 train.py 相同）')
 >     parser.add_argument('--psi_factor', default=3.0, type=float,
 >                         help='[Ψ加權] 清單病例的 loss 倍率')
+>     parser.add_argument('--psi_norm', default='wsum', choices=['wsum', 'mean'],                    # 新增
+>                         help='[Ψ加權] batch 內的平均方式：wsum = Σ w L / Σ w；mean = Σ w L / B（w 全為 1 時兩者皆等於官方 loss）')
 >     parser.add_argument('--grad_ckpt', default=0, type=int,
 >                         help='[記憶體] 1 = RETFound encoder 逐 block gradient checkpointing（結果不變，較慢、省 GPU 記憶體）')
-95a107,179
+95a109,181
 > class LightDatasetFromRoot(DatasetFromRoot):
 >     """[記憶體] 與 utils.datasets.DatasetFromRoot 相同，只差 mask 的儲存方式。
 > 
@@ -86,21 +88,21 @@
 >         return x, y, torch.tensor(self.w[idx])
 > 
 > 
-259a344,348
+259a346,350
 >     # [記憶體] encoder 逐 block gradient checkpointing（選用，見 enable_grad_ckpt）
 >     if args.grad_ckpt:
 >         n = enable_grad_ckpt(model)
 >         print(f'[記憶體] 已啟用 encoder gradient checkpointing：{n} 個 block')
 > 
-279c368
+279c370
 <         train_dataset = DatasetFromRoot(image_root_path = args.train_image_path, 
 ---
 >         train_dataset = LightDatasetFromRoot(image_root_path = args.train_image_path,   # [記憶體] 
-284c373
+284c375
 <         val_dataset = DatasetFromRoot(image_root_path = args.val_image_path, 
 ---
 >         val_dataset = LightDatasetFromRoot(image_root_path = args.val_image_path,   # [記憶體] 
-310a400,419
+310a402,421
 > 
 >     # [Ψ加權] 依與 Dataset 相同的排序取得每張的檔名，包成回傳 (x, y, w) 的資料集
 >     if separate_val == 1:
@@ -119,28 +121,31 @@
 >             raise ValueError(f'[Ψ加權] 清單中 {len(missing)} 例不在訓練集：{missing[:5]}')
 >     train_dataset = PsiWeightedDataset(train_dataset, train_names, psi_cases, args.psi_factor)
 >     print(f'[Ψ加權] 清單 {args.psi_cases or "（無）"}　case 數 {len(psi_cases)}　'
->           f'倍率 {args.psi_factor if psi_cases else 1.0}　'
+>           f'倍率 {args.psi_factor if psi_cases else 1.0}　平均方式 {args.psi_norm}　'
 >           f'訓練集中被加權 {int((train_dataset.w > 1).sum())} / {len(train_dataset)} 張')
-331a441,445
+331a443,447
 >     # [Ψ加權] 逐張版本：與上面兩個完全相同，只是不先平均
 >     dice_loss_ps = monai.losses.DiceLoss(include_background=True, squared_pred=False, softmax=True, reduction='none')
 >     ce_loss_ps = torch.nn.CrossEntropyLoss(reduction='none')
 >     psi_checked = False
 >     n_weighted_epoch = 0
-370c484
+370c486
 <         for i, (x, y_true) in enumerate(loader_train):                        
 ---
 >         for i, (x, y_true, w) in enumerate(loader_train):                        
-371a486,487
+371a488,489
 >             w = w.to(device)                                            # [Ψ加權]
 >             n_weighted_epoch += int((w > 1).sum())                      # [Ψ加權]
-389c505,517
+389c507,522
 <             loss = dice_loss(y_pred, y_true.float()) + ce_loss(y_pred, y_true.float())            
 ---
 >             # [Ψ加權] L = Σ w_i (Dice_i + CE_i) / Σ w_i ；w 全為 1 時等於原本的 loss
 >             l_dice = dice_loss_ps(y_pred, y_true.float()).flatten(1).mean(1)     # (B,)
 >             l_ce = ce_loss_ps(y_pred, y_true.float()).flatten(1).mean(1)         # (B,)
->             loss = (w * (l_dice + l_ce)).sum() / w.sum()
+>             if args.psi_norm == 'mean':                                          # 新增
+>                 loss = (w * (l_dice + l_ce)).mean()                              # 新增：Σ w L / B
+>             else:
+>                 loss = (w * (l_dice + l_ce)).sum() / w.sum()                     # Σ w L / Σ w
 >             if not psi_checked:
 >                 # 第一個 batch 自我檢查：權重全設為 1 時，必須與原本 train.py 的 loss 相同
 >                 with torch.no_grad():
@@ -150,6 +155,6 @@
 >                 print(f'[Ψ加權] 自我檢查：原 loss {loss_orig.item():.8f}　w=1 逐張 loss {loss_w1.item():.8f}　差 {d:.2e}')
 >                 assert d < 1e-5 * max(1.0, abs(loss_orig.item())), '[Ψ加權] 逐張 loss 與原 loss 不一致，停止訓練'
 >                 psi_checked = True
-435a564,565
+435a569,570
 >         print(f'Epoch_{(epoch+1)} weighted samples: {n_weighted_epoch}')     # [Ψ加權]
 >         n_weighted_epoch = 0

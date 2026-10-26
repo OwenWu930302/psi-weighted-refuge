@@ -13,15 +13,16 @@
 | `check_light_dataset.py` | 驗證省記憶體載入與官方輸出相同 | 前 40 張 → ✓ / ✗ | `utils/datasets.py` `DatasetFromRoot` |
 | `check_train_size.py` | 由 epoch 197 的 validation Dice 反推訓練時的 image_size | 權重、log → 各尺寸與 log 的差 | `train.py` 的 validation 迴圈 |
 | `check_grad_ckpt.py` | 驗證 `--grad_ckpt` 不改變 loss 與梯度（本研究未使用） | 前 8 張 → ✓ / ✗、GPU 記憶體估計 | |
+| `check_mean_sum.py` | 拿掉 `/ w.sum()` 後，`.mean()` 與 `.sum()` 哪一個等於官方 loss（w 全為 1；loss 與梯度） | baseline 權重、training 400 張 → 每個 batch 的比值與結論（`results/logs/check_mean_sum.txt`） | 官方 loss = `train.py` 第 389 行 |
 
 ### `train_psi.py` 的改動（標記 `[Ψ加權]`、`[記憶體]`）
 
 | 位置 | 改動 |
 |---|---|
-| 參數 | `--psi_cases`、`--psi_factor`、`--grad_ckpt` |
+| 參數 | `--psi_cases`、`--psi_factor`、`--psi_norm`（`wsum` ÷ Σw，預設；`mean` ÷ 張數）、`--grad_ckpt` |
 | `LightDatasetFromRoot` | mask 以單通道 uint8 保存（輸出不變） |
 | `PsiWeightedDataset` | 包裝原資料集，多回傳每張權重；檢查清單病例都在訓練集 |
-| loss | `reduction='none'` 的 Dice 與 CE，`Σ w L / Σ w`；第一個 batch 自我檢查 |
+| loss | `reduction='none'` 的 Dice 與 CE，`Σ w L / Σ w`（`--psi_norm mean`：`Σ w L / B`）；第一個 batch 自我檢查 |
 | log | `[Ψ加權] 清單 …`、`[Ψ加權] 自我檢查 …`、`Epoch_N weighted samples: …` |
 
 官方原行只有 4 行被替換（兩個 Dataset 的建立、訓練迴圈的解包、loss 的計算），其餘皆為新增。
@@ -46,7 +47,7 @@
 | `refuge_lists.py check` | 與原 `caselevel_refuge.csv`、`per_image_dice_designed.csv` 比對 | |
 | `refuge_lists.py proxy` | 以原表為底、只替換 Ψ8 後重新檢定 | 呼叫 `recompute_caselevel.report` |
 | `refuge_lists.py make` | 產生加權清單 | `select()` 逐字複製自 `make_weight_lists.py` |
-| `weighted_cases_same_loss.py` | **加權病例分析**：被加權病例的加權前（對照組）/ 後（專家），含 OD / OC → `results/weighted_cases/` | 與 psi-weighted-nnunet `analysis/weighted_cases_same_loss.py` 相同的檔名、欄位與彙總方式 |
+| `weighted_cases_same_loss.py` | **加權病例分析**：被加權病例的加權前（對照組）/ 後（專家），含 OD / OC → `results/weighted_cases/`；`--norm mean` 讀 mean 版專家 → `results/weighted_cases_mean/` | 與 psi-weighted-nnunet `analysis/weighted_cases_same_loss.py` 相同的檔名、欄位與彙總方式 |
 | `refuge_compare.py` | 加權前後比較（含未加權病例；補充） | `--before baseline / control`；也用於測試集 |
 | `refuge_placebo.py` | 交叉清單安慰劑、控制 baseline Dice（分層置換）、回歸平均斜率 | |
 
@@ -65,6 +66,7 @@
 | `proxy/caselevel_refuge_testing_original.csv` | 原 testing 表（Ψ2 / Ψ8 為 224） |
 | `proxy/caselevel_refuge_testing_psi8at256.csv` | 同上，Ψ8 換成 256 |
 | `weighted_cases/` | 加權病例分析（主要；格式同 psi-weighted-nnunet） |
+| `weighted_cases_mean/` | 同上，專家為 loss ÷ 張數版（`--psi_norm mean`） |
 | `compare_training*/`、`compare_testing*/` | 補充比較、安慰劑矩陣（`_vs_control` 為對對照組） |
 | `curves/` | 每個 epoch 的 training loss、validation OD / OC / mean Dice、加權樣本數 |
 | `logs/` | 各訓練 log 的關鍵行（張數、清單、自我檢查、最佳 epoch、訓練時間） |

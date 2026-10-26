@@ -27,8 +27,11 @@
 
 用法（倉庫根目錄）：
   conda activate expertree
-  python3 analysis/weighted_cases_same_loss.py
+  python3 analysis/weighted_cases_same_loss.py               # 專家 loss ÷ Σw（原本的結果）
+  python3 analysis/weighted_cases_same_loss.py --norm mean   # 專家 loss ÷ 張數 → results/weighted_cases_mean/
+                                                            # （讀 expert_mean_<proxy>_training.csv；對照組相同）
 """
+import argparse
 import os
 import warnings
 
@@ -57,6 +60,13 @@ def load(fn):
 
 
 def main():
+    global OUT, EXPERTS, SOURCE
+    ap = argparse.ArgumentParser()                                                          # 新增
+    ap.add_argument('--norm', default='wsum', choices=['wsum', 'mean'])                    # 新增
+    if ap.parse_args().norm == 'mean':                                                      # 新增：mean 版專家
+        OUT += '_mean'
+        EXPERTS = [(n + '_mean', fn.replace('expert_', 'expert_mean_'), lf) for n, fn, lf in EXPERTS]
+        SOURCE += '；專家 loss ÷ 張數（--psi_norm mean）'
     os.makedirs(OUT, exist_ok=True)
     ctrl = load(CTRL[1])
     rows_w, rows_all, summary, compare = [], [], [], []

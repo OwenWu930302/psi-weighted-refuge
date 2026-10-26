@@ -30,6 +30,8 @@ BTCV 與 ACDC 的結果請見原倉庫。
 
 $$L = \frac{\sum_i w_i \cdot L_{\text{Dice+CE}}(x_i)}{\sum_i w_i}, \qquad w_i \in \{1,\ 3\}$$
 
+另一組專家把分母改為 batch 張數 $B$（`--psi_norm mean`，$L = \frac{1}{B}\sum_i w_i L_i$）；權重全為 1 時兩種寫法都等於官方 loss（見 [docs/RESULTS.md](docs/RESULTS.md) 第 7 節）。
+
 ---
 
 ## 與 psi-weighted-nnunet 的差異
@@ -57,6 +59,8 @@ $$L = \frac{\sum_i w_i \cdot L_{\text{Dice+CE}}(x_i)}{\sum_i w_i}, \qquad w_i \i
 | 對照組 | 完成 |
 | 訓練集分析（對對照組、對 baseline）＋ 安慰劑檢查 | 完成 |
 | 測試集評估 | 完成 |
+| loss ÷ 張數（mean）版三個專家：驗證、訓練、訓練集加權病例分析 | 完成 |
+| mean 版：安慰劑檢查、測試集 | 尚未進行 |
 
 ---
 
@@ -106,6 +110,16 @@ baseline 的每一項設定都由檔案反推並驗證，見 [docs/METHODS.md](d
 3. 同設定重跑的差異很大：對照組與 baseline 的最佳 epoch 相差 150（197 vs 347）。每個模型只訓練一次，Wilcoxon 以影像為單位，未包含不同次訓練之間的變異。
 4. proxy 以 validation 篩選，測試集未參與任何選擇。
 
+**loss ÷ 張數（mean）版專家（訓練集，被加權病例，專家 − 對照組）**
+
+| 專家 | 最佳 epoch | 被加權病例 Δ | 升 / 降 | 加權組 − 未加權組（÷Σw → mean） |
+|---|---|---|---|---|
+| Ψ1 mean | 111 | −0.0027 | 50 / 70 | +0.0006 → **+0.0057** |
+| Ψ5 mean | 79 | −0.0107 | 17 / 103 | +0.0047 → **+0.0104** |
+| Ψ8 mean | 136 | −0.0089 | 31 / 89 | −0.0005 → +0.0001 |
+
+被加權病例仍低於對照組，但扣掉模型整體的偏移後，Ψ1、Ψ5 的被加權病例比未加權病例下降得少，效果比 ÷Σw 版強；尚未做安慰劑檢查與測試集評估。逐例資料：`results/weighted_cases_mean/`。
+
 完整數據見 [docs/RESULTS.md](docs/RESULTS.md)。
 
 ---
@@ -119,11 +133,12 @@ fundusegmenter_extension/   需放進 FunduSegmenter 資料夾執行的程式（
   refuge_infer_psi.py       推論 → 每張 Dice、Ψ1、Ψ5、Ψ2、Ψ8、預測圖
   run_refuge_experts.sh     依序訓練三個專家
   run_control.sh            訓練對照組
-  check_*.py                三項驗證（載入方式、訓練尺寸、gradient checkpointing）
+  check_*.py                驗證（載入方式、訓練尺寸、gradient checkpointing、loss 平均方式 check_mean_sum.py）
 analysis/                   只讀 CSV 的分析（不需 GPU）
   refuge_select_proxy.py    proxy 篩選（直接 import psi-weighted-nnunet 的 Ψ 函式與檢定）
   refuge_lists.py           與原結果比對（check / proxy）、產生加權清單（make）
   weighted_cases_same_loss.py  加權病例分析（專家 vs 對照組；格式同 psi-weighted-nnunet）→ results/weighted_cases/
+                            （--norm mean → results/weighted_cases_mean/）
   refuge_compare.py         加權前後比較（含未加權病例；補充）
   refuge_placebo.py         安慰劑檢查（交叉清單、控制 baseline Dice、回歸平均）
 tools/collect_results.sh    把本機結果複製進 results/、weight_lists/

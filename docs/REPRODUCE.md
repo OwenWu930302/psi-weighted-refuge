@@ -200,6 +200,26 @@ conda run -n expertree python3 refuge_placebo.py --root ../psi_expert
 
 ---
 
+## 8b. loss ÷ 張數（mean）版專家
+
+```bash
+python3 check_mean_sum.py          # 驗證：mean 在 w 全為 1 時等於官方 loss（✓），sum 為 16 倍（✗）
+PSI_NORM=mean nohup systemd-inhibit --why="REFUGE experts mean" bash run_refuge_experts.sh > ../psi_expert/run_experts_mean.out 2>&1 &
+grep "Ψ加權" ../psi_expert/expert_mean_psi1_convex/train.log      # 應有「平均方式 mean」
+# 完成後：對 training 400 張推論
+for P in psi1_convex psi5_exclusion psi8_rotation; do
+  python3 refuge_infer_psi.py --split training --image_size 256 --no_psi8 \
+    --ckpt ../psi_expert/expert_mean_$P/saved_weights/best_weights.pth --out ../psi_expert/expert_mean_${P}_training
+done
+# 在倉庫根目錄：
+bash tools/collect_results.sh
+conda run -n expertree python3 analysis/weighted_cases_same_loss.py --norm mean    # → results/weighted_cases_mean/
+```
+
+對照組共用第 7 步的 `control`（權重全為 1 時兩種寫法相同）。
+
+---
+
 ## 9. 測試集（所有實驗完成後）
 
 ```bash

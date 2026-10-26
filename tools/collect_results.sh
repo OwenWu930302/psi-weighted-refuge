@@ -36,6 +36,8 @@ cp_ "$PE/testing256/per_image.csv"        results/per_image/baseline_testing.csv
 for P in psi1_convex psi5_exclusion psi8_rotation; do
   cp_ "$PE/expert_${P}_training/per_image.csv" "results/per_image/expert_${P}_training.csv"
   cp_ "$PE/expert_${P}_testing/per_image.csv"  "results/per_image/expert_${P}_testing.csv"
+  cp_ "$PE/expert_mean_${P}_training/per_image.csv" "results/per_image/expert_mean_${P}_training.csv"   # 新增：loss ÷ 張數版
+  cp_ "$PE/expert_mean_${P}_testing/per_image.csv"  "results/per_image/expert_mean_${P}_testing.csv"    # 新增
 done
 cp_ "$PE/control_training/per_image.csv" results/per_image/control_training.csv
 cp_ "$PE/control_testing/per_image.csv"  results/per_image/control_testing.csv
@@ -57,7 +59,10 @@ python3 - "$FS/repro_notes/train_designed.log" results/curves/baseline.csv \
           "$PE/expert_psi1_convex/train.log"    results/curves/expert_psi1_convex.csv \
           "$PE/expert_psi5_exclusion/train.log" results/curves/expert_psi5_exclusion.csv \
           "$PE/expert_psi8_rotation/train.log"  results/curves/expert_psi8_rotation.csv \
-          "$PE/control/train.log"               results/curves/control.csv <<'PY'
+          "$PE/control/train.log"               results/curves/control.csv \
+          "$PE/expert_mean_psi1_convex/train.log"    results/curves/expert_mean_psi1_convex.csv \
+          "$PE/expert_mean_psi5_exclusion/train.log" results/curves/expert_mean_psi5_exclusion.csv \
+          "$PE/expert_mean_psi8_rotation/train.log"  results/curves/expert_mean_psi8_rotation.csv <<'PY'
 import sys, re, csv, os
 args = sys.argv[1:]
 pat = {'train_loss': r'training loss', 'val_od': r'validation OD Dice', 'val_oc': r'validation OC Dice',
@@ -85,7 +90,10 @@ echo "【訓練摘要（log 中的關鍵行）】"
 mkdir -p results/logs
 for L in "$FS/repro_notes/train_designed.log:baseline" "$PE/expert_psi1_convex/train.log:expert_psi1_convex" \
          "$PE/expert_psi5_exclusion/train.log:expert_psi5_exclusion" "$PE/expert_psi8_rotation/train.log:expert_psi8_rotation" \
-         "$PE/control/train.log:control"; do
+         "$PE/control/train.log:control" \
+         "$PE/expert_mean_psi1_convex/train.log:expert_mean_psi1_convex" \
+         "$PE/expert_mean_psi5_exclusion/train.log:expert_mean_psi5_exclusion" \
+         "$PE/expert_mean_psi8_rotation/train.log:expert_mean_psi8_rotation"; do
   src="${L%%:*}"; name="${L##*:}"
   if [ -f "$src" ]; then
     grep -aE "Number of|Ψ加權|Start training|best weights|Training time" "$src" | tr '\r' '\n' \

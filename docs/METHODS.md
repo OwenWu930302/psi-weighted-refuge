@@ -47,6 +47,7 @@ baseline 為先前以官方 FunduSegmenter 訓練的模型（`best_designed.pth`
 - 新增 `--psi_cases`（清單 csv）與 `--psi_factor`（倍率，預設 3.0）。不給清單時所有權重為 1。
 - 資料集外包一層 `PsiWeightedDataset`，不改變原資料與順序，只多回傳每張影像的權重。
 - loss 改為逐張：`L = Σ wᵢ (Diceᵢ + CEᵢ) / Σ wᵢ`。Dice 與 CE 使用與原版相同的物件，只是 `reduction='none'`。
+- `--psi_norm`（預設 `wsum`）：`wsum` = 上式（÷ Σ wᵢ）；`mean` = `Σ wᵢ (Diceᵢ + CEᵢ) / B`（÷ batch 張數）。權重全為 1 時兩者都等於官方 loss；`check_mean_sum.py` 以真實模型與資料驗證 `mean` 的 loss 與梯度和官方相同（差 ≤ 3.3e-07），而只加總（不除）為官方的 16 倍。見 [RESULTS.md](RESULTS.md) 第 7 節。
 - **自我檢查**：第一個 batch 同時以原方式與「權重全為 1 的逐張方式」計算 loss，差異超過 1e-5 即停止訓練。實測差 0（1 epoch 測試）與 1.19e-07（正式訓練，GPU 浮點誤差）。
 - 每個 epoch 記錄被加權的樣本數（batch 16 時每 epoch 恰為 120）。
 
@@ -62,6 +63,8 @@ baseline 為先前以官方 FunduSegmenter 訓練的模型（`best_designed.pth`
 1. 清單病例 loss × 3
 2. `--epochs 600`：baseline 的最佳 epoch 197 是前 1558 個 epoch 中的最大值，只看前 600 個時挑到的仍是 197；專家同樣在前 600 個中挑最佳，兩邊規則一致。三個專家的最佳 epoch（202、128、202）皆遠低於 600。
 3. 輸出位置
+
+loss ÷ 張數版（`--psi_norm mean`，RESULTS 第 7 節）另以同一份清單、相同設定訓練三個專家，輸出至 `expert_mean_<proxy>/`；最佳 epoch 為 111、79、136。對照組（權重全為 1）在兩種寫法下相同，因此共用。
 
 ### 3.3 對照組
 
@@ -180,7 +183,7 @@ REFUGE 的推論依 `centres.txt` 的絕對座標裁出 ROI，旋轉或遮擋原
 
 ## 8. 已知限制
 
-1. **選擇模型的方式**：FunduSegmenter 只保存 validation 最佳的 epoch，各模型停在不同 epoch（baseline 197、專家 202 / 128 / 202），對訓練集 Dice 的影響可能大於加權本身。nnU-Net 則使用固定的最後一個 epoch。
+1. **選擇模型的方式**：FunduSegmenter 只保存 validation 最佳的 epoch，各模型停在不同 epoch（baseline 197、對照組 347、專家 202 / 128 / 202、mean 版專家 111 / 79 / 136），對訓練集 Dice 的影響可能大於加權本身。nnU-Net 則使用固定的最後一個 epoch。
 2. **訓練集接近飽和**：baseline 在訓練集的病例 Dice 為 0.9753，被加權病例 0.972，改善空間小。
 3. **凍結的 encoder**：可學習參數僅 36M（共 340M），針對個別病例特化的能力有限。
 4. **清單重疊**：Ψ1 與 Ψ5 的清單重疊 64%，兩個專家不完全獨立。

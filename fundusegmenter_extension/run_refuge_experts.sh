@@ -23,11 +23,13 @@ IMAGE_SIZE=256        # 已確認：test.py 以 256 重現原 Dice/Ψ1/Ψ5（REA
 NUM_WORKERS=1         # train.py 預設值（README 範例為 4；只影響資料讀取速度）
 BATCH_SIZE=16         # 已確認：best_designed.pth 的優化器更新 4925 次 / 197 epoch = 25 次 = 400 ÷ 16
 GRAD_CKPT=0           # batch 16 放得下 4080，不需要
+NORM=${PSI_NORM:-wsum} # 新增：batch 內的平均方式（wsum = ÷Σw，原本的結果；mean = ÷張數）
+TAG=$([ "$NORM" = wsum ] && echo "" || echo "_$NORM")   # 新增：mean → 輸出到 expert_mean_<proxy>，不覆蓋原結果
 
 for P in psi1_convex psi5_exclusion psi8_rotation; do
   L=$LISTS/wcases_refuge_$P.csv
   [ -f "$L" ] || { echo "找不到清單 $L"; exit 1; }
-  R=$OUT/expert_$P
+  R=$OUT/expert${TAG}_$P
   mkdir -p "$R"
   echo "===== $(date '+%F %T') 開始 $P ====="
   python3 train_psi.py \
@@ -43,7 +45,7 @@ for P in psi1_convex psi5_exclusion psi8_rotation; do
     --image_size $IMAGE_SIZE \
     --transform_mode designed_transform \
     --results_base_dir "$R" \
-    --psi_cases "$L" --psi_factor 3.0 \
+    --psi_cases "$L" --psi_factor 3.0 --psi_norm $NORM \
     --grad_ckpt $GRAD_CKPT \
     2>&1 | tee "$R/train.log"
   echo "===== $(date '+%F %T') 完成 $P ====="
