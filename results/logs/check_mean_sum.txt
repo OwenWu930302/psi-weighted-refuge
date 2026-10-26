@@ -1,6 +1,5 @@
 .mean() 與 .sum() 和官方 train.py 的 loss比較（w 全為 1）
 
-裝置 cuda　權重 repro_notes/best_designed.pth　25 個 batch × 16 張　可訓練參數 35.6 M
 
 batch       官方 loss      .mean()       .sum()    mean÷官方    sum÷官方      梯度 mean÷官方      梯度 sum÷官方
 1        0.03956611   0.03956611   0.63305771   1.000000   16.0000        0.999999        16.0000
