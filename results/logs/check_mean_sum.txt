@@ -1,6 +1,4 @@
-python3 check_mean_sum.py   （2026-10-23，RTX 4080；程式：fundusegmenter_extension/check_mean_sum.py）
-問題：拿掉 / w.sum() 之後，.mean() 與 .sum() 哪一個等於官方 train.py 的 loss（w 全為 1）
-條件：FunduSegmenter 載入 baseline 權重、encoder 凍結（同 train.py）、training ROI 400 張、designed_transform(256)、batch 16、shuffle
+.mean() 與 .sum() 和官方 train.py 的 loss比較（w 全為 1）
 
 裝置 cuda　權重 repro_notes/best_designed.pth　25 個 batch × 16 張　可訓練參數 35.6 M
 
