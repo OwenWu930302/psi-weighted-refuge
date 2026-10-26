@@ -507,10 +507,9 @@ def main(args):
             # [Ψ加權] L = Σ w_i (Dice_i + CE_i) / Σ w_i ；w 全為 1 時等於原本的 loss
             l_dice = dice_loss_ps(y_pred, y_true.float()).flatten(1).mean(1)     # (B,)
             l_ce = ce_loss_ps(y_pred, y_true.float()).flatten(1).mean(1)         # (B,)
-            if args.psi_norm == 'mean':                                          # 新增
-                loss = (w * (l_dice + l_ce)).mean()                              # 新增：Σ w L / B
-            else:
-                loss = (w * (l_dice + l_ce)).sum() / w.sum()                     # Σ w L / Σ w
+                                              # 新增
+            loss = (w * (l_dice + l_ce)).mean()                              # 新增：Σ w L / B
+            
             if not psi_checked:
                 # 第一個 batch 自我檢查：權重全設為 1 時，必須與原本 train.py 的 loss 相同
                 with torch.no_grad():
